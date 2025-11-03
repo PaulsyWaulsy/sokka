@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "AutoTiler.hpp"
 #include "Texture.hpp"
 #include "imgui.h"
 
@@ -12,7 +13,7 @@ struct TileUV {
 
 class Tileset {
    public:
-    Tileset() = default;
+    Tileset();
     ~Tileset() = default;
 
     bool load(const std::string& path, int tileSize);
@@ -38,4 +39,6 @@ class Tileset {
     bool loaded_ = false;
     int tileSize_ = DEFUALT_TILE_SIZE;
     int selectedTile_ = -1;
+
+    TileSetManager manager_;
 };

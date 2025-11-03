@@ -4,6 +4,7 @@
 
 #include "Canvas.hpp"
 #include "EditorTool.hpp"
+#include "Menubar.hpp"
 #include "Texture.hpp"
 #include "Tileset.hpp"
 #include "imgui.h"
@@ -24,6 +25,7 @@ class GUI {
 
     Canvas canvas_;
     Tileset tileset_;
+    Menubar menubar_;
 
     EditorTool currentTool_ = EditorTool::Brush;
 };

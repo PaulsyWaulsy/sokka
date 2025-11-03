@@ -1,13 +1,15 @@
 #include "Canvas.hpp"
 
+#include <array>
 #include <cmath>
-#include <iostream>
 
 #include "imgui.h"
 
 Canvas::Canvas(Tileset& tileset, int mapWidth, int mapHeight)
     : tileset_(tileset), mapWidth_(mapWidth), mapHeight_(mapHeight) {
     tiles_.resize(mapWidth_ * mapHeight_, -1);
+
+    // TODO: add auto tiling rules
 }
 
 void Canvas::render() {
@@ -21,7 +23,20 @@ void Canvas::render() {
         handleInput(origin);
         drawGrid(draw_list, origin, windowSize);
         drawTiles(draw_list, origin);
-        drawHover(draw_list, origin);
+        drawHover(origin);
+
+        // --- Mouse position info ---
+        if (ImGui::IsWindowHovered()) {
+            ImVec2 mouse = ImGui::GetMousePos();
+            float localX = (mouse.x - origin.x - offset_.x) / (tileSize_ * zoom_);
+            float localY = (mouse.y - origin.y - offset_.y) / (tileSize_ * zoom_);
+            int tileX = static_cast<int>(floor(localX));
+            int tileY = static_cast<int>(floor(localY));
+
+            ImGui::Separator();
+            ImGui::Text("Mouse (screen): [%.1f, %.1f]", mouse.x, mouse.y);
+            ImGui::Text("Mouse (tile):   [%d, %d]", tileX, tileY);
+        }
     }
     ImGui::End();
 }
@@ -41,7 +56,7 @@ void Canvas::handleInput(const ImVec2& origin) {
     if (ImGui::IsWindowHovered() && io.KeyCtrl) {
         zoom_ += io.MouseWheel * 0.1f;
         if (zoom_ < 0.1f) zoom_ = 0.1f;
-        if (zoom_ > 10.0f) zoom_ = 10.0f;
+        if (zoom_ > 7.5f) zoom_ = 7.5f;
     }
 
     // --- Wheel scroll if not zooming ---
@@ -82,11 +97,11 @@ void Canvas::drawGrid(ImDrawList* draw_list, const ImVec2& origin, const ImVec2&
     const float grid = tileSize_ * zoom_;
     for (float x = fmodf(offset_.x, grid); x < size.x; x += grid)
         draw_list->AddLine(ImVec2(origin.x + x, origin.y), ImVec2(origin.x + x, origin.y + size.y),
-                           IM_COL32(50, 50, 50, 255));
+                           IM_COL32(50, 50, 50, 128));
 
     for (float y = fmodf(offset_.y, grid); y < size.y; y += grid)
         draw_list->AddLine(ImVec2(origin.x, origin.y + y), ImVec2(origin.x + size.x, origin.y + y),
-                           IM_COL32(50, 50, 50, 255));
+                           IM_COL32(50, 50, 50, 128));
 }
 
 void Canvas::drawTiles(ImDrawList* draw_list, const ImVec2& origin) {
@@ -111,7 +126,7 @@ void Canvas::drawTiles(ImDrawList* draw_list, const ImVec2& origin) {
     }
 }
 
-void Canvas::drawHover(ImDrawList* draw_list, const ImVec2& origin) {
+void Canvas::drawHover(const ImVec2& origin) {
     // --- Hover effect ---
     if (ImGui::IsWindowHovered()) {
         ImVec2 mouse = ImGui::GetMousePos();
@@ -131,6 +146,43 @@ void Canvas::drawHover(ImDrawList* draw_list, const ImVec2& origin) {
             ImDrawList* dl = ImGui::GetWindowDrawList();
             dl->AddRectFilled(min, max, IM_COL32(0, 120, 255, 50));            // translucent blue fill
             dl->AddRect(min, max, IM_COL32(0, 120, 255, 200), 0.0f, 0, 2.0f);  // blue border
+        }
+    }
+}
+
+int Canvas::computeMask(int x, int y) const {
+    int mask = 0;
+
+    auto get = [&](int tx, int ty) {
+        if (tx < 0 || ty < 0 || tx >= mapWidth_ || ty >= mapHeight_) return false;
+        return tiles_[ty * mapWidth_ + tx] != -1;
+    };
+
+    if (get(x - 1, y - 1)) mask |= 1;    // Up-Left
+    if (get(x, y - 1)) mask |= 2;        // Up
+    if (get(x + 1, y - 1)) mask |= 4;    // Up-Right
+    if (get(x - 1, y)) mask |= 8;        // Left
+    if (get(x + 1, y)) mask |= 16;       // Right
+    if (get(x - 1, y + 1)) mask |= 32;   // Down-Left
+    if (get(x, y + 1)) mask |= 64;       // Down
+    if (get(x + 1, y + 1)) mask |= 128;  // Down-Right
+
+    return mask;
+}
+
+void Canvas::updateAutoTiles(int x, int y) {
+    const std::array<ImVec2, 5> neighbors = {ImVec2(x, y), ImVec2(x + 1, y), ImVec2(x - 1, y), ImVec2(x, y + 1),
+                                             ImVec2(x, y - 1)};
+
+    for (auto& n : neighbors) {
+        int tx = (int)n.x;
+        int ty = (int)n.y;
+        if (tx < 0 || ty < 0 || tx >= mapWidth_ || ty >= mapHeight_) continue;
+
+        if (tiles_[ty * mapWidth_ + tx] != -1) {
+            int mask = computeMask(tx, ty);
+            int newTile = autotileSet_.getTileForMask(mask);
+            if (newTile != -1) tiles_[ty * mapWidth_ + tx] = newTile;
         }
     }
 }

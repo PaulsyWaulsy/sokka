@@ -4,8 +4,7 @@
 #include <SDL_opengl.h>
 #include <SDL_scancode.h>
 
-#include <iostream>
-
+#include "Logger.hpp"
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "imgui.h"
@@ -17,7 +16,7 @@ EditorApp::~EditorApp() { shutdown(); }
 
 void EditorApp::initSDL() {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) != 0) {
-        std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+        LOG_ERROR("Failed to initialize SDL: ", SDL_GetError());
         std::exit(EXIT_FAILURE);
     }
 
@@ -32,13 +31,13 @@ void EditorApp::initSDL() {
         SDL_CreateWindow(title_.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width_, height_, window_flags);
 
     if (!window_) {
-        std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
+        LOG_ERROR("Failed to create window: ", SDL_GetError());
         std::exit(EXIT_FAILURE);
     }
 
     glContext_ = SDL_GL_CreateContext(window_);
     if (glContext_ == nullptr) {
-        std::cerr << "Failed to create GL_Context: " << SDL_GetError() << std::endl;
+        LOG_ERROR("Failed to create GL_Context: ", SDL_GetError());
         if (window_) SDL_DestroyWindow(window_);
         std::exit(EXIT_FAILURE);
     }
@@ -46,7 +45,7 @@ void EditorApp::initSDL() {
     SDL_GL_MakeCurrent(window_, glContext_);
     SDL_GL_SetSwapInterval(1);  // Enable vsync
     if (glewInit() != GLEW_OK) {
-        std::cerr << "Failed to initialize GLEW\n";
+        LOG_ERROR("Failed to initialize GLEW");
         if (glContext_) SDL_GL_DeleteContext(glContext_);
         if (window_) SDL_DestroyWindow(window_);
         std::exit(EXIT_FAILURE);
@@ -80,6 +79,10 @@ void EditorApp::initOpenGL() {
 }
 
 void EditorApp::run() {
+    // Init loger
+    Logger::init();
+    Logger::setLevel(LogLevel::DEBUG);
+
     initSDL();
     initOpenGL();
     initImGui();

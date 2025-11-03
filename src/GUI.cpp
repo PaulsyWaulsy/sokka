@@ -6,7 +6,7 @@
 #include "SDL.h"
 #include "imgui.h"
 
-GUI::GUI() : canvas_(tileset_) {}
+GUI::GUI() : canvas_(tileset_), menubar_(tileset_) {}
 
 void GUI::render() {
     renderMenuBar();
@@ -40,58 +40,6 @@ void GUI::renderDockspace() {
     ImGui::End();
 }
 
-void GUI::renderMenuBar() {
-    if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("New...")) {
-                std::cout << "New map\n";
-            }
-            if (ImGui::MenuItem("Open...")) {
-                std::cout << "Open map\n";
-            }
-
-            // Open file dialog
-            ImGui::Separator();
-            if (ImGui::MenuItem("Save")) {
-                std::cout << "Save map\n";
-            }
-            if (ImGui::MenuItem("Save As...")) {
-                std::cout << "Save map\n";
-            }
-
-            ImGui::Separator();
-            if (ImGui::MenuItem("Import")) {
-                std::cout << "Import\n";
-                IGFD::FileDialogConfig config;
-
-                // HACK: hard coded for easier use
-                config.path = "../assets/sprites/";
-                ImGuiFileDialog::Instance()->OpenDialog("ChooseTileset", "Choose File", ".png,.jpep", config);
-            }
-
-            ImGui::Separator();
-            if (ImGui::MenuItem("Exit")) {
-                SDL_Event quitEvent;
-                quitEvent.type = SDL_QUIT;
-                SDL_PushEvent(&quitEvent);
-            }
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMainMenuBar();
-    }
-
-    // For opening dialog
-    if (ImGuiFileDialog::Instance()->Display("ChooseTileset")) {
-        if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-            tileset_.load(filePath, 8);  // or use your chosen tile size
-            std::cout << "[GUI] Imported tileset: " << filePath << std::endl;
-        }
-        ImGuiFileDialog::Instance()->Close();
-    }
-}
-
 void GUI::renderToolbar() {
     ImGui::Begin("Tools", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
 
@@ -102,6 +50,8 @@ void GUI::renderToolbar() {
 
     ImGui::End();
 }
+
+void GUI::renderMenuBar() { menubar_.render(); }
 
 void GUI::renderCanvas() { canvas_.render(); }
 

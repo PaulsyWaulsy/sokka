@@ -1,15 +1,21 @@
 #include "Tileset.hpp"
 
-bool Tileset::load(const std::string& path, int tileSize) {
-    tileSize_ = tileSize;
-    loaded_ = texture_.loadFromFile(path);
-    if (!loaded_) {
-        std::cerr << "[Tileset] Failed to load: " << path << std::endl;
-        return false;
-    }
+#include "Logger.hpp"
 
-    generateUVs();
-    std::cout << "[Tileset] Loaded: " << path << " (" << texture_.width() << "x" << texture_.height() << ")\n";
+Tileset::Tileset() {
+    manager_ = loadTilesJSON("../assets/map/Foreground.json");
+    LOG_SUCCESS("Loaded tile sets");
+}
+
+bool Tileset::load(const std::string& path, int tileSize) {
+    // tileSize_ = tileSize;
+    // loaded_ = texture_.loadFromFile(path);
+    // if (!loaded_) {
+    //     LOG_ERROR("Tileset Failed to load: ", path);
+    // }
+    // generateUVs();
+    // LOG_SUCCESS("Tileset Loaded: ", path, " (", texture_.width(), "x", texture_.height(), ")");
+
     return true;
 }
 
@@ -72,7 +78,7 @@ void Tileset::render() {
         ImGui::PushID(i);
         if (ImGui::ImageButton("tile", (ImTextureID)(intptr_t)texture_.id(), displaySize, uv0, uv1)) {
             selectedTile_ = i;
-            std::cout << "[Tileset] Selected tile " << i << std::endl;
+            LOG_INFO("Tileset Selected tile ", i);
         }
         ImGui::PopID();
 

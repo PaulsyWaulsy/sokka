@@ -1,6 +1,6 @@
 #include "Texture.hpp"
 
-#include <iostream>
+#include "Logger.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -14,7 +14,7 @@ Texture::~Texture() {
 bool Texture::loadFromFile(const std::string& path) {
     unsigned char* data = stbi_load(path.c_str(), &width_, &height_, &channels_, STBI_rgb_alpha);
     if (!data) {
-        std::cerr << "Failed to load image: " << path << " (" << stbi_failure_reason() << ")\n";
+        LOG_ERROR("Failed to load image: ", path, " (", stbi_failure_reason(), ")\n");
         return false;
     }
 
