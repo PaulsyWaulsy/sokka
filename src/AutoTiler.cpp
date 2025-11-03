@@ -9,10 +9,17 @@
 
 // Ignore the centre of the mask -> is the tile
 // string is xxx-xxx-xxx
-static const int lookupMask[8] = {0, 1, 2, 5, 7, 8, 9, 10};
+static const int lookupMask[8] = {0, 1, 2, 4, 6, 8, 9, 10};
 
 Mask parseMaskString(const std::string& s) {
     // TODO: if mask == "center", "padding"
+
+    if (s == "padding") {
+        return {0, 0};  // special meaning handled elsewhere
+    }
+    if (s == "center") {
+        return {0, 0};  // same — these are not bitmask-based
+    }
 
     uint8_t tileMask = 0, ignoreMask = 0;
     int bit = 7;
@@ -71,9 +78,11 @@ TileSetManager loadTilesJSON(const std::string& path) {
                 const Set& base = baseIt->second;
 
                 // Copy base properties if missing
-                if (set.rules.empty()) set.rules = base.rules;
                 if (set.ignores.empty()) set.ignores = base.ignores;
                 if (set.path.empty()) set.path = base.path;
+                if (set.rules.empty()) {
+                    set.rules = base.rules;
+                }
 
                 LOG_INFO("Tileset ", id, " copied from ", set.copy);
             } else {
@@ -93,7 +102,8 @@ TileSetManager loadTilesJSON(const std::string& path) {
 
         for (size_t i = 0; i < set.rules.size(); ++i) {
             const auto& rule = set.rules[i];
-            LOG_INFO("      [", i, "] Mask: ", rule.mask.mask, " | Tiles: ", rule.tiles.size());
+            LOG_INFO("      [", i, "] Mask: ", static_cast<int>(rule.mask.mask),
+                     ", Ignore: ", static_cast<int>(rule.mask.ignores), "| Tiles: ", rule.tiles.size());
         }
     }
 

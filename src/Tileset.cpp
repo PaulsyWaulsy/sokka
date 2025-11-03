@@ -54,7 +54,7 @@ void Tileset::render() {
 
     // Determine how many tiles per row based on available width
     int tilesX = texture_.width() / tileSize_;
-    int tilesY = texture_.height() / tileSize_;
+    // int tilesY = texture_.height() / tileSize_;
 
     // Compute tile display scale to fit horizontally with a small margin
     float totalWidth = (float)tilesX * tileSize_;
