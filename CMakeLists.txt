@@ -54,13 +54,21 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
 )
+# ImGui integration
+set(FILE_DIALOG_DIR ${CMAKE_SOURCE_DIR}/external/filedialog)
 
-target_sources(${PROJECT_NAME} PRIVATE ${IMGUI_SOURCES})
+set(FILE_DIALOG_SOURCES
+    ${FILE_DIALOG_DIR}/ImGuiFileDialog.cpp
+)
+
+target_sources(${PROJECT_NAME} PRIVATE ${IMGUI_SOURCES} ${FILE_DIALOG_SOURCES})
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${IMGUI_DIR}
         ${IMGUI_DIR}/backends
+        ${FILE_DIALOG_DIR}
+        ${CMAKE_SOURCE_DIR}/external
 )
 
 # Enable compiler warnings

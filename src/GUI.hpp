@@ -1,14 +1,29 @@
 #pragma once
 
+#include <vector>
+
+#include "Canvas.hpp"
+#include "EditorTool.hpp"
+#include "Texture.hpp"
+#include "Tileset.hpp"
+#include "imgui.h"
 class GUI {
    public:
     GUI();
     ~GUI() = default;
 
     void render();
+    EditorTool getCurrentTool() const { return currentTool_; }
 
    private:
     void renderMenuBar();
     void renderDockspace();
-    void renderPanels();
+    void renderToolbar();
+    void renderCanvas();
+    void renderTileset();
+
+    Canvas canvas_;
+    Tileset tileset_;
+
+    EditorTool currentTool_ = EditorTool::Brush;
 };

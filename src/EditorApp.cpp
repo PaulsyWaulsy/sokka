@@ -1,6 +1,8 @@
 #include "EditorApp.hpp"
 
+#include <SDL_events.h>
 #include <SDL_opengl.h>
+#include <SDL_scancode.h>
 
 #include <iostream>
 
@@ -37,11 +39,18 @@ void EditorApp::initSDL() {
     glContext_ = SDL_GL_CreateContext(window_);
     if (glContext_ == nullptr) {
         std::cerr << "Failed to create GL_Context: " << SDL_GetError() << std::endl;
+        if (window_) SDL_DestroyWindow(window_);
         std::exit(EXIT_FAILURE);
     }
 
     SDL_GL_MakeCurrent(window_, glContext_);
     SDL_GL_SetSwapInterval(1);  // Enable vsync
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "Failed to initialize GLEW\n";
+        if (glContext_) SDL_GL_DeleteContext(glContext_);
+        if (window_) SDL_DestroyWindow(window_);
+        std::exit(EXIT_FAILURE);
+    }
 }
 
 void EditorApp::initImGui() {
@@ -54,7 +63,7 @@ void EditorApp::initImGui() {
 
     io.Fonts->AddFontFromFileTTF("../assets/fonts/JetBrainsMonoNerdFontMono-Regular.ttf", 18.0f);
 
-    ImGui::StyleColorsDark();
+    ImGui::StyleColorsLight();
     ImGuiStyle& style = ImGui::GetStyle();
     float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
 
@@ -88,6 +97,11 @@ void EditorApp::processEvents(bool& running) {
     while (SDL_PollEvent(&event)) {
         ImGui_ImplSDL2_ProcessEvent(&event);
         if (event.type == SDL_QUIT) running = false;
+
+        // NOTE: clost on escape key pressed
+        if (event.type == SDL_KEYDOWN) {
+            if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) running = false;
+        }
     }
 }
 

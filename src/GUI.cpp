@@ -2,15 +2,17 @@
 
 #include <iostream>
 
+#include "ImGuiFileDialog.h"
 #include "SDL.h"
 #include "imgui.h"
 
-GUI::GUI() {}
+GUI::GUI() : canvas_(tileset_) {}
 
 void GUI::render() {
     renderMenuBar();
     renderDockspace();
-    renderPanels();
+    renderCanvas();
+    renderTileset();
 }
 
 void GUI::renderDockspace() {
@@ -41,15 +43,32 @@ void GUI::renderDockspace() {
 void GUI::renderMenuBar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("New Map")) {
+            if (ImGui::MenuItem("New...")) {
                 std::cout << "New map\n";
             }
             if (ImGui::MenuItem("Open...")) {
                 std::cout << "Open map\n";
             }
+
+            // Open file dialog
+            ImGui::Separator();
             if (ImGui::MenuItem("Save")) {
                 std::cout << "Save map\n";
             }
+            if (ImGui::MenuItem("Save As...")) {
+                std::cout << "Save map\n";
+            }
+
+            ImGui::Separator();
+            if (ImGui::MenuItem("Import")) {
+                std::cout << "Import\n";
+                IGFD::FileDialogConfig config;
+
+                // HACK: hard coded for easier use
+                config.path = "../assets/sprites/";
+                ImGuiFileDialog::Instance()->OpenDialog("ChooseTileset", "Choose File", ".png,.jpep", config);
+            }
+
             ImGui::Separator();
             if (ImGui::MenuItem("Exit")) {
                 SDL_Event quitEvent;
@@ -61,27 +80,29 @@ void GUI::renderMenuBar() {
 
         ImGui::EndMainMenuBar();
     }
+
+    // For opening dialog
+    if (ImGuiFileDialog::Instance()->Display("ChooseTileset")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+            tileset_.load(filePath, 8);  // or use your chosen tile size
+            std::cout << "[GUI] Imported tileset: " << filePath << std::endl;
+        }
+        ImGuiFileDialog::Instance()->Close();
+    }
 }
 
-void GUI::renderPanels() {
-    if (ImGui::Begin("Tileset")) {
-        ImGui::Text("Tileset Browser");
-        ImGui::Separator();
-        ImGui::Text("Display available tiles here");
-    }
-    ImGui::End();
+void GUI::renderToolbar() {
+    ImGui::Begin("Tools", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
 
-    if (ImGui::Begin("Canvas")) {
-        ImGui::Text("Tilemap Canvas");
-        ImGui::Separator();
-        ImGui::Text("Here the map would be drawn and edited");
-    }
-    ImGui::End();
+    if (ImGui::RadioButton("Brush", currentTool_ == EditorTool::Brush)) currentTool_ = EditorTool::Brush;
+    if (ImGui::RadioButton("Eraser", currentTool_ == EditorTool::Eraser)) currentTool_ = EditorTool::Eraser;
+    if (ImGui::RadioButton("Fill", currentTool_ == EditorTool::Fill)) currentTool_ = EditorTool::Fill;
+    if (ImGui::RadioButton("Select", currentTool_ == EditorTool::Select)) currentTool_ = EditorTool::Select;
 
-    if (ImGui::Begin("Inspector")) {
-        ImGui::Text("Inspector Panel");
-        ImGui::Separator();
-        ImGui::Text("Tile / Entity properties");
-    }
     ImGui::End();
 }
+
+void GUI::renderCanvas() { canvas_.render(); }
+
+void GUI::renderTileset() { tileset_.render(); }
