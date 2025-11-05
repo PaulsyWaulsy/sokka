@@ -1,8 +1,10 @@
 #include "AutoTiler.hpp"
 
+#include <bitset>
 #include <cstdint>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <random>
 #include <unordered_map>
 
 #include "Logger.hpp"
@@ -12,14 +14,29 @@
 // string is xxx-xxx-xxx
 static const int lookupMask[8] = {0, 1, 2, 4, 6, 8, 9, 10};
 
-Mask parseMaskString(const std::string& s) {
-    // TODO: if mask == "center", "padding"
+int getIndexFromCoord(int x, int y, int width, int height) {
+    // Validate inputs (optional, helps catch out-of-bounds)
+    if (x < 0 || y < 0 || x >= width || y >= height) {
+        return -1;  // Invalid index
+    }
 
+    // Convert (x, y) → linear index
+    return y * width + x;
+}
+
+Coord getCoordFromIndex(int index, int width, int height) {
+    if (index < 0 || index >= width * height) {
+        return {-1, -1};  // Invalid
+    }
+    return {index % width, index / width};
+}
+
+Mask parseMaskString(const std::string& s) {
     if (s == "padding") {
-        return {0, 0};  // special meaning handled elsewhere
+        return {0xFF, 0xFF};  // special meaning handled elsewhere
     }
     if (s == "center") {
-        return {0, 0};  // same — these are not bitmask-based
+        return {0xFF, 0xFF};  // same — these are not bitmask-based
     }
 
     uint8_t tileMask = 0, ignoreMask = 0;
@@ -34,7 +51,7 @@ Mask parseMaskString(const std::string& s) {
     return {tileMask, ignoreMask};
 }
 
-AutoTileRuleMap loadTilesJSON(const std::string& path) {
+std::unordered_map<std::string, RuleSet> loadTilesJSON(const std::string& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
         LOG_ERROR("TilesetLoader Failed to open JSON: ", path);
@@ -45,7 +62,7 @@ AutoTileRuleMap loadTilesJSON(const std::string& path) {
     file >> data;
 
     // Step 1: Load all tilesets into a map by ID
-    AutoTileRuleMap tilesetMap;
+    std::unordered_map<std::string, RuleSet> tilesetMap;
 
     for (auto& t : data["tilesets"]) {
         RuleSet set;
@@ -68,14 +85,14 @@ AutoTileRuleMap loadTilesJSON(const std::string& path) {
             }
         }
 
-        tilesetMap.ruleSets.emplace(set.id, std::move(set));
+        tilesetMap.emplace(set.id, std::move(set));
     }
 
     // Step 2: Apply "copy" inheritance
-    for (auto& [id, set] : tilesetMap.ruleSets) {
+    for (auto& [id, set] : tilesetMap) {
         if (!set.copy.empty()) {
-            auto baseIt = tilesetMap.ruleSets.find(set.copy);
-            if (baseIt != tilesetMap.ruleSets.end()) {
+            auto baseIt = tilesetMap.find(set.copy);
+            if (baseIt != tilesetMap.end()) {
                 const RuleSet& base = baseIt->second;
 
                 // Copy base properties if missing
@@ -92,17 +109,44 @@ AutoTileRuleMap loadTilesJSON(const std::string& path) {
         }
     }
 
-    LOG_INFO("Loaded ", tilesetMap.ruleSets.size(), " tilesets from ", path);
+    LOG_INFO("Loaded ", tilesetMap.size(), " tilesets from ", path);
     return tilesetMap;
 }
 
-uint8_t AutoTileSet::getTileForMask(uint8_t mask, uint8_t ignores) const {
-    for (const auto& rule : rules_) {
-        if ((mask ^ ignores) == rule.mask) {
-            return rule.tileIndex;
+uint8_t AutoTileSet::getTileForMask(uint8_t mask, int x, int y) const {
+    std::vector<uint8_t> matches;
+    std::bitset<8> maskBits(mask);
+
+    LOG_INFO("[AutoTiler] Checking mask=", (int)mask, " (", maskBits, ")");
+
+    for (size_t i = 0; i < rules_.size(); ++i) {
+        const auto& rule = rules_[i];
+        uint8_t relevant = rule.ignores;
+        bool matched = ((mask & relevant) == (rule.mask & relevant));
+
+        std::bitset<8> ruleBits(rule.mask);
+        std::bitset<8> ignoreBits(rule.ignores);
+
+        if (matched) {
+            matches.push_back(rule.tileIndex);
+            LOG_INFO("  ├─ MATCH [Rule ", i, "] mask=", (int)rule.mask, "(", ruleBits, ")",
+                     " ignores=", (int)rule.ignores, "(", ignoreBits, ")", " → tile=", (int)rule.tileIndex);
         }
     }
-    return -1;  // default
+
+    if (!matches.empty()) {
+        // Deterministic seed from tile position + mask
+        uint32_t seed = static_cast<uint32_t>((x * 73856093) ^ (y * 19349663) ^ (mask * 83492791));
+        std::mt19937 rng(seed);
+        std::uniform_int_distribution<size_t> dist(0, matches.size() - 1);
+        return matches[dist(rng)];
+    }
+
+    return 0;
+}
+
+void AutoTileSet::addRule(uint8_t mask, uint8_t ignores, uint8_t tileIndex) {
+    rules_.push_back({mask, ignores, tileIndex});
 }
 
 AutoTiler::AutoTiler(const std::string& path) {
@@ -117,7 +161,7 @@ bool AutoTiler::load(const std::string& path) {
     ruleMap_ = loadTilesJSON(path);
     bool success = true;
 
-    for (auto& [id, ruleSet] : ruleMap_.ruleSets) {
+    for (auto& [id, ruleSet] : ruleMap_) {
         // Ignore loading the template
         if (std::string(id) == "z") {
             continue;
@@ -128,17 +172,32 @@ bool AutoTiler::load(const std::string& path) {
         std::string relativePath = "../assets/sprites/tilesets/" + ruleSet.path + ".png";
 
         // Construct in-place inside the map
-        auto [it, inserted] = tilesets_.tilesets.emplace(id, Tileset{});
+        auto [it, inserted] = tilesets_.emplace(id, Tileset{});
         Tileset& tileset = it->second;  // reference to the one inside the map
 
         if (tileset.load(relativePath)) {
             LOG_SUCCESS("AutoTiler Loaded tileset: ", id, " = ", ruleSet.path);
         } else {
             LOG_ERROR("AutoTiler Failed to load tileset for rule set: ", id, " (", ruleSet.path, ")");
-            tilesets_.tilesets.erase(it);
+            tilesets_.erase(it);
             success = false;
+            continue;
         }
+
+        // load the auto tile rules
+        setupAutoTileset(ruleSet, id);
     }
 
     return success;
+}
+
+void AutoTiler::setupAutoTileset(const RuleSet& ruleSet, const std::string& id) {
+    for (auto& rule : ruleSet.rules) {
+        Mask mask = rule.mask;
+        for (auto& tile : rule.tiles) {
+            uint8_t index = getIndexFromCoord(tile.x, tile.y);
+            autoTilesets_[id].addRule(mask.mask, mask.ignores, index);
+        }
+    }
+    LOG_SUCCESS("Added AutoTileset for ", id);
 }

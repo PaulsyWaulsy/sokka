@@ -20,6 +20,7 @@ class Tileset {
 
     bool isLoaded() const { return loaded_; }
     int selectedTile() const { return selectedTile_; }
+    void setSelectedTile(int index) { selectedTile_ = index; }
     const TileUV& getSelectedUV() const { return tileUVs_[selectedTile_]; }
     const TileUV& getTileUV(int index) const { return tileUVs_[index]; }
     const std::vector<TileUV> getTileUVs() const { return tileUVs_; }

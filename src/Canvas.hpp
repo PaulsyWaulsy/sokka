@@ -15,6 +15,7 @@ class Canvas {
     void drawTiles(ImDrawList* draw_list, const ImVec2& origin);
 
     int computeMask(int x, int y) const;
+    int checkCenter(int x, int y) const;
     void updateAutoTiles(int x, int y);
 
     ImVec2 offset_ = ImVec2(0.0f, 0.0f);
@@ -24,6 +25,7 @@ class Canvas {
     TilePallete& tilePallete_;
     AutoTiler& autoTiler_;
     Tileset* currentTileset_ = nullptr;
+    AutoTileSet* currentAutoTileset_ = nullptr;
 
     int mapWidth_;
     int mapHeight_;

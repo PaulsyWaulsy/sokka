@@ -9,7 +9,9 @@ class TilePallete {
     const std::string& selectedTileset() const { return selectedTileset_; }
     AutoTiler& getAutoTiler() { return autoTiler_; }
     int selectedTile() const { return selectedTile_; }
+
     Tileset* getSelectedTileset();
+    AutoTileSet* getSelectedAutoTileset();
 
    private:
     AutoTiler autoTiler_;

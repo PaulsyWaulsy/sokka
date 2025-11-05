@@ -1,9 +1,12 @@
 #include "Canvas.hpp"
 
 #include <array>
+#include <bitset>
 #include <cmath>
 
+#include "Logger.hpp"
 #include "TilePallete.hpp"
+#include "Tileset.hpp"
 #include "imgui.h"
 
 Canvas::Canvas(TilePallete& tilePallete, int mapWidth, int mapHeight)
@@ -11,6 +14,7 @@ Canvas::Canvas(TilePallete& tilePallete, int mapWidth, int mapHeight)
     tiles_.resize(mapWidth_ * mapHeight_, -1);
 
     currentTileset_ = tilePallete_.getSelectedTileset();
+    currentAutoTileset_ = tilePallete_.getSelectedAutoTileset();
     // TODO: add auto tiling rules
 }
 
@@ -67,7 +71,10 @@ void Canvas::handleInput(const ImVec2& origin) {
     }
 
     // --- Painting ---
-    if (!currentTileset_ || !currentTileset_->isLoaded()) return;
+    if (!currentTileset_ || !currentTileset_->isLoaded()) {
+        LOG_WARN("Current Tileset is NULL or not loaded");
+        return;
+    }
 
     if (ImGui::IsWindowHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
         if (currentTileset_->isLoaded() && currentTileset_->selectedTile() >= 0) {
@@ -78,7 +85,23 @@ void Canvas::handleInput(const ImVec2& origin) {
             int tileY = static_cast<int>(localY);
 
             if (tileX >= 0 && tileY >= 0 && tileX < mapWidth_ && tileY < mapHeight_) {
-                tiles_[tileY * mapWidth_ + tileX] = currentTileset_->selectedTile();
+                // Compute the surrounding bitmask
+                int mask = computeMask(tileX, tileY);
+                int tileIndex = currentAutoTileset_->getTileForMask(mask, tileX, tileY);
+                tiles_[tileY * mapWidth_ + tileX] = tileIndex;
+
+                std::bitset<8> maskBits(mask);
+
+                LOG_INFO("[AutoTile] Painted tile at (", tileX, ", ", tileY,
+                         ") | "
+                         "Mask: ",
+                         (int)mask, " (", maskBits,
+                         ") | "
+                         "Tile Index: ",
+                         tileIndex);
+
+                // Update neighboring tiles
+                updateAutoTiles(tileX, tileY);
             }
         }
     }
@@ -93,6 +116,7 @@ void Canvas::handleInput(const ImVec2& origin) {
 
         if (tileX >= 0 && tileY >= 0 && tileX < mapWidth_ && tileY < mapHeight_) {
             tiles_[tileY * mapWidth_ + tileX] = -1;  // erase
+            updateAutoTiles(tileX, tileY);
         }
     }
 }
@@ -154,6 +178,22 @@ void Canvas::drawHover(const ImVec2& origin) {
     }
 }
 
+int Canvas::checkCenter(int x, int y) const {
+    auto get = [&](int tx, int ty) {
+        if (tx < 0 || ty < 0 || tx >= mapWidth_ || ty >= mapHeight_) return -1;  // treat out of bounds as empty
+        return tiles_[ty * mapWidth_ + tx];
+    };
+
+    // Check two tiles away in each cardinal direction
+    bool topEmpty = get(x, y - 2) == -1;
+    bool bottomEmpty = get(x, y + 2) == -1;
+    bool leftEmpty = get(x - 2, y) == -1;
+    bool rightEmpty = get(x + 2, y) == -1;
+
+    // Return 1 if any direction is empty, 0 otherwise
+    return (topEmpty || bottomEmpty || leftEmpty || rightEmpty) ? 0 : 1;
+}
+
 int Canvas::computeMask(int x, int y) const {
     int mask = 0;
 
@@ -162,32 +202,41 @@ int Canvas::computeMask(int x, int y) const {
         return tiles_[ty * mapWidth_ + tx] != -1;
     };
 
-    if (get(x - 1, y - 1)) mask |= 1;    // Up-Left
-    if (get(x, y - 1)) mask |= 2;        // Up
-    if (get(x + 1, y - 1)) mask |= 4;    // Up-Right
-    if (get(x - 1, y)) mask |= 8;        // Left
-    if (get(x + 1, y)) mask |= 16;       // Right
-    if (get(x - 1, y + 1)) mask |= 32;   // Down-Left
-    if (get(x, y + 1)) mask |= 64;       // Down
-    if (get(x + 1, y + 1)) mask |= 128;  // Down-Right
+    // Bit order: Up-Left (bit 7) → Down-Right (bit 0)
+    if (get(x - 1, y - 1)) mask |= 1 << 7;  // Up-Left
+    if (get(x, y - 1)) mask |= 1 << 6;      // Up
+    if (get(x + 1, y - 1)) mask |= 1 << 5;  // Up-Right
+    if (get(x - 1, y)) mask |= 1 << 4;      // Left
+    if (get(x + 1, y)) mask |= 1 << 3;      // Right
+    if (get(x - 1, y + 1)) mask |= 1 << 2;  // Down-Left
+    if (get(x, y + 1)) mask |= 1 << 1;      // Down
+    if (get(x + 1, y + 1)) mask |= 1 << 0;  // Down-Right
 
     return mask;
 }
 
 void Canvas::updateAutoTiles(int x, int y) {
-    const std::array<ImVec2, 5> neighbors = {ImVec2(x, y), ImVec2(x + 1, y), ImVec2(x - 1, y), ImVec2(x, y + 1),
-                                             ImVec2(x, y - 1)};
+    if (!currentAutoTileset_) {
+        LOG_ERROR("Auto Tileset is NULL");
+        return;
+    }
 
-    for (auto& n : neighbors) {
-        int tx = (int)n.x;
-        int ty = (int)n.y;
-        if (tx < 0 || ty < 0 || tx >= mapWidth_ || ty >= mapHeight_) continue;
+    const int radius = 2;  // 5x5 area → radius 2
 
-        // FIX:
-        if (tiles_[ty * mapWidth_ + tx] != -1) {
+    for (int dy = -radius; dy <= radius; ++dy) {
+        for (int dx = -radius; dx <= radius; ++dx) {
+            int tx = x + dx;
+            int ty = y + dy;
+
+            if (tx < 0 || ty < 0 || tx >= mapWidth_ || ty >= mapHeight_) continue;
+
+            int index = ty * mapWidth_ + tx;
+            if (tiles_[index] == -1) continue;  // skip empty cells
+
             int mask = computeMask(tx, ty);
-            // int newTile = autocurrentTileset_.getTileForMask(mask);
-            // if (newTile != -1) tiles_[ty * mapWidth_ + tx] = newTile;
+            int newTile = currentAutoTileset_->getTileForMask(mask, tx, ty);
+
+            if (newTile != -1) tiles_[index] = newTile;
         }
     }
 }

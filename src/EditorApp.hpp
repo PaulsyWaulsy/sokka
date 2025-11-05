@@ -8,7 +8,7 @@
 #include "GUI.hpp"
 
 const int DEFAULT_WIDTH = 1280;
-const int DEFAULT_HEIGHT = 1280;
+const int DEFAULT_HEIGHT = 720;
 
 class EditorApp {
    public:

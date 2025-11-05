@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "AutoTiler.hpp"
 #include "Logger.hpp"
 
 TilePallete::TilePallete() : autoTiler_() {
@@ -64,7 +65,13 @@ void TilePallete::render() {
                 ImGui::PushID(i);
                 // LOG_INFO("Texture ID: ", tileset.textureId());
                 if (ImGui::ImageButton("tile", (ImTextureID)(intptr_t)tileset.textureId(), displaySize, uv0, uv1)) {
-                    selectedTile_ = i;
+                    // Deselect if already selected
+                    if (i == selectedTile_) {
+                        selectedTile_ = -1;
+                    } else {
+                        selectedTile_ = i;
+                    }
+                    tileset.setSelectedTile(i);
                     LOG_INFO("Tileset Selected tile ", i);
                 }
                 ImGui::PopID();
@@ -89,6 +96,13 @@ void TilePallete::render() {
 Tileset* TilePallete::getSelectedTileset() {
     if (selectedTileset_.empty()) return nullptr;
     auto& tilesets = autoTiler_.getTilesets();
+    auto it = tilesets.find(selectedTileset_);
+    return (it != tilesets.end()) ? &it->second : nullptr;
+}
+
+AutoTileSet* TilePallete::getSelectedAutoTileset() {
+    if (selectedTileset_.empty()) return nullptr;
+    auto& tilesets = autoTiler_.getAutoTilesets();
     auto it = tilesets.find(selectedTileset_);
     return (it != tilesets.end()) ? &it->second : nullptr;
 }

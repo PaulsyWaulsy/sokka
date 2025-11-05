@@ -40,18 +40,22 @@ struct TileSetMap {
 
 struct AutoTileRule {
     uint8_t mask;
-    uint8_t tileIndex;
+    uint8_t ignores;
+    int tileIndex;  // can be negative
 };
 
+const int DEFAULT_TILESET_HEIGHT = 15;
+const int DEFAULT_TILESET_WIDTH = 6;
+
+int getIndexFromCoord(int x, int y, int width = DEFAULT_TILESET_WIDTH, int height = DEFAULT_TILESET_HEIGHT);
+Coord getCoordFromIndex(int index, int width = DEFAULT_TILESET_WIDTH, int height = DEFAULT_TILESET_HEIGHT);
 Mask parseMaskString(const std::string& string);
-AutoTileRuleMap loadTilesJSON(const std::string& path);
+std::unordered_map<std::string, RuleSet> loadTilesJSON(const std::string& path);
 
 class AutoTileSet {
    public:
-    void addRule(uint8_t mask, uint8_t tileIndex) { rules_.push_back({mask, tileIndex}); }
-    const std::vector<AutoTileRule>& getRules() const { return rules_; }
-    uint8_t getTileForMask(uint8_t mask, uint8_t ignores) const;
-    AutoTileSet loadTileSet(const std::string& path);
+    void addRule(uint8_t mask, uint8_t ignores, uint8_t tileIndex);
+    uint8_t getTileForMask(uint8_t mask, int x, int y) const;
 
    private:
     std::vector<AutoTileRule> rules_;
@@ -63,13 +67,19 @@ class AutoTiler {
     AutoTiler(const std::string& path = FOREGROUND_PATH);
     ~AutoTiler() = default;
 
-    const std::unordered_map<std::string, Tileset>& getTilesets() const { return tilesets_.tilesets; }
-    std::unordered_map<std::string, Tileset>& getTilesets() { return tilesets_.tilesets; }
+    const std::unordered_map<std::string, Tileset>& getTilesets() const { return tilesets_; }
+    std::unordered_map<std::string, Tileset>& getTilesets() { return tilesets_; }
+
+    const std::unordered_map<std::string, AutoTileSet>& getAutoTilesets() const { return autoTilesets_; }
+    std::unordered_map<std::string, AutoTileSet>& getAutoTilesets() { return autoTilesets_; }
 
    private:
     static constexpr const char* FOREGROUND_PATH = "../assets/map/Foreground.json";
 
+    std::unordered_map<std::string, Tileset> tilesets_;
+    std::unordered_map<std::string, RuleSet> ruleMap_;  // only need for creating the auto tile sets
+    std::unordered_map<std::string, AutoTileSet> autoTilesets_;
+
     bool load(const std::string& path);
-    TileSetMap tilesets_;
-    AutoTileRuleMap ruleMap_;
+    void setupAutoTileset(const RuleSet& ruleSet, const std::string& id);
 };
