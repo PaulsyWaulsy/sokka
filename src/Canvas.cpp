@@ -3,12 +3,14 @@
 #include <array>
 #include <cmath>
 
+#include "TilePallete.hpp"
 #include "imgui.h"
 
-Canvas::Canvas(Tileset& tileset, int mapWidth, int mapHeight)
-    : tileset_(tileset), mapWidth_(mapWidth), mapHeight_(mapHeight) {
+Canvas::Canvas(TilePallete& tilePallete, int mapWidth, int mapHeight)
+    : tilePallete_(tilePallete), autoTiler_(tilePallete.getAutoTiler()), mapWidth_(mapWidth), mapHeight_(mapHeight) {
     tiles_.resize(mapWidth_ * mapHeight_, -1);
 
+    currentTileset_ = tilePallete_.getSelectedTileset();
     // TODO: add auto tiling rules
 }
 
@@ -65,8 +67,10 @@ void Canvas::handleInput(const ImVec2& origin) {
     }
 
     // --- Painting ---
+    if (!currentTileset_ || !currentTileset_->isLoaded()) return;
+
     if (ImGui::IsWindowHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-        if (tileset_.isLoaded() && tileset_.selectedTile() >= 0) {
+        if (currentTileset_->isLoaded() && currentTileset_->selectedTile() >= 0) {
             ImVec2 mouse = ImGui::GetMousePos();
             float localX = (mouse.x - origin.x - offset_.x) / (tileSize_ * zoom_);
             float localY = (mouse.y - origin.y - offset_.y) / (tileSize_ * zoom_);
@@ -74,7 +78,7 @@ void Canvas::handleInput(const ImVec2& origin) {
             int tileY = static_cast<int>(localY);
 
             if (tileX >= 0 && tileY >= 0 && tileX < mapWidth_ && tileY < mapHeight_) {
-                tiles_[tileY * mapWidth_ + tileX] = tileset_.selectedTile();
+                tiles_[tileY * mapWidth_ + tileX] = currentTileset_->selectedTile();
             }
         }
     }
@@ -105,16 +109,16 @@ void Canvas::drawGrid(ImDrawList* draw_list, const ImVec2& origin, const ImVec2&
 }
 
 void Canvas::drawTiles(ImDrawList* draw_list, const ImVec2& origin) {
-    if (!tileset_.isLoaded()) return;
+    if (!currentTileset_->isLoaded()) return;
 
-    GLuint texID = tileset_.textureId();
+    GLuint texID = currentTileset_->textureId();
 
     for (int y = 0; y < mapHeight_; ++y) {
         for (int x = 0; x < mapWidth_; ++x) {
             int index = tiles_[y * mapWidth_ + x];
             if (index < 0) continue;  // empty
 
-            const TileUV& uv = tileset_.getTileUV(index);
+            const TileUV& uv = currentTileset_->getTileUV(index);
             ImVec2 uv0(uv.u0, 1.0f - uv.v1);
             ImVec2 uv1(uv.u1, 1.0f - uv.v0);
 
@@ -179,10 +183,11 @@ void Canvas::updateAutoTiles(int x, int y) {
         int ty = (int)n.y;
         if (tx < 0 || ty < 0 || tx >= mapWidth_ || ty >= mapHeight_) continue;
 
+        // FIX:
         if (tiles_[ty * mapWidth_ + tx] != -1) {
             int mask = computeMask(tx, ty);
-            int newTile = autotileSet_.getTileForMask(mask);
-            if (newTile != -1) tiles_[ty * mapWidth_ + tx] = newTile;
+            // int newTile = autocurrentTileset_.getTileForMask(mask);
+            // if (newTile != -1) tiles_[ty * mapWidth_ + tx] = newTile;
         }
     }
 }

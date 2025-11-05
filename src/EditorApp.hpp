@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 
+#include <memory>
 #include <string>
 
 #include "GUI.hpp"
@@ -23,14 +24,20 @@ class EditorApp {
     void shutdown();
 
     void processEvents(bool& running);
+    void init();
+    void start();
     void update();
     void render();
 
    private:
+    void setStyle(ImGuiIO& io);
+
+    static constexpr const char* CUSTOM_FONT = "../assets/fonts/JetBrainsMonoNerdFontMono-Regular.ttf";
+
     bool running_;
     SDL_Window* window_;
     SDL_GLContext glContext_;
-    GUI gui_;
+    std::unique_ptr<GUI> gui_;
     int width_;
     int height_;
     std::string title_;

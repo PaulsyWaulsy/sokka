@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "AutoTiler.hpp"
+#include "Logger.hpp"
 #include "Texture.hpp"
 #include "imgui.h"
 
@@ -13,20 +13,25 @@ struct TileUV {
 
 class Tileset {
    public:
-    Tileset();
-    ~Tileset() = default;
+    Tileset() = default;
+    ~Tileset() { LOG_WARN("Tileset deleted: ", textureId()); };
 
-    bool load(const std::string& path, int tileSize);
-    void render();  // draw ImGui panel for selecting tiles
+    bool load(const std::string& path, int tileSize = DEFUALT_TILE_SIZE);
 
     bool isLoaded() const { return loaded_; }
     int selectedTile() const { return selectedTile_; }
     const TileUV& getSelectedUV() const { return tileUVs_[selectedTile_]; }
     const TileUV& getTileUV(int index) const { return tileUVs_[index]; }
+    const std::vector<TileUV> getTileUVs() const { return tileUVs_; }
     GLuint textureId() const { return texture_.id(); }
 
     int tileWidth() const { return tileSize_; }
     int tileHeight() const { return tileSize_; }
+
+    int textureWidth() const { return texture_.width(); }
+    int textureHeight() const { return texture_.height(); }
+
+    int tileSize() const { return tileSize_; }
 
    private:
     void generateUVs();
@@ -39,6 +44,4 @@ class Tileset {
     bool loaded_ = false;
     int tileSize_ = DEFUALT_TILE_SIZE;
     int selectedTile_ = -1;
-
-    TileSetManager manager_;
 };

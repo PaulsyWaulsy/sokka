@@ -4,6 +4,8 @@
 #include <SDL_opengl.h>
 #include <SDL_scancode.h>
 
+#include <memory>
+
 #include "Logger.hpp"
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_sdl2.h"
@@ -55,19 +57,14 @@ void EditorApp::initSDL() {
 void EditorApp::initImGui() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+
+    // IO flags
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    io.Fonts->AddFontFromFileTTF("../assets/fonts/JetBrainsMonoNerdFontMono-Regular.ttf", 18.0f);
-
-    ImGui::StyleColorsLight();
-    ImGuiStyle& style = ImGui::GetStyle();
-    float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
-
-    style.ScaleAllSizes(main_scale);
-    style.FontScaleDpi = main_scale;
+    setStyle(io);
 
     ImGui_ImplSDL2_InitForOpenGL(window_, glContext_);
     ImGui_ImplOpenGL3_Init("#version 130");
@@ -79,15 +76,10 @@ void EditorApp::initOpenGL() {
 }
 
 void EditorApp::run() {
-    // Init loger
-    Logger::init();
-    Logger::setLevel(LogLevel::DEBUG);
-
-    initSDL();
-    initOpenGL();
-    initImGui();
+    init();
 
     running_ = true;
+    start();
     while (running_) {
         processEvents(running_);
         update();
@@ -117,7 +109,7 @@ void EditorApp::render() {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    gui_.render();
+    gui_->render();
 
     ImGui::Render();
     glClear(GL_COLOR_BUFFER_BIT);
@@ -134,3 +126,41 @@ void EditorApp::shutdown() {
     if (window_) SDL_DestroyWindow(window_);
     SDL_Quit();
 }
+
+void EditorApp::setStyle(ImGuiIO& io) {
+    // Font
+    ImFont* font = io.Fonts->AddFontFromFileTTF(CUSTOM_FONT, 18.0f);
+    if (!font) {
+        LOG_ERROR("Unable to load font: ", CUSTOM_FONT);
+        io.Fonts->AddFontDefault();
+    } else {
+        io.FontDefault = font;
+    }
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGui::StyleColorsLight();
+
+    // Removed rounding
+    style.WindowRounding = 0.0f;
+    style.ChildRounding = 0.0f;
+    style.FrameRounding = 0.0f;
+    style.PopupRounding = 0.0f;
+    style.GrabRounding = 0.0f;
+    style.TabRounding = 0.0f;
+
+    // Scaling
+    float main_scale = ImGui_ImplSDL2_GetContentScaleForDisplay(0);
+    style.ScaleAllSizes(main_scale);
+    style.FontScaleDpi = main_scale;
+}
+
+void EditorApp::init() {
+    // Init loger
+    Logger::init();
+    Logger::setLevel(LogLevel::DEBUG);
+
+    initSDL();
+    initOpenGL();
+    initImGui();
+}
+void EditorApp::start() { gui_ = std::make_unique<GUI>(); }

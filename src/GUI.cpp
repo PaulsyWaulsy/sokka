@@ -4,15 +4,16 @@
 
 #include "ImGuiFileDialog.h"
 #include "SDL.h"
+#include "TilePallete.hpp"
 #include "imgui.h"
 
-GUI::GUI() : canvas_(tileset_), menubar_(tileset_) {}
+GUI::GUI() : tilePallete_(), canvas_(tilePallete_), menubar_(tilePallete_) {}
 
 void GUI::render() {
     renderMenuBar();
     renderDockspace();
     renderCanvas();
-    renderTileset();
+    renderTilePallete();
 }
 
 void GUI::renderDockspace() {
@@ -55,4 +56,4 @@ void GUI::renderMenuBar() { menubar_.render(); }
 
 void GUI::renderCanvas() { canvas_.render(); }
 
-void GUI::renderTileset() { tileset_.render(); }
+void GUI::renderTilePallete() { tilePallete_.render(); }

@@ -5,9 +5,9 @@
 #include "Canvas.hpp"
 #include "EditorTool.hpp"
 #include "Menubar.hpp"
-#include "Texture.hpp"
-#include "Tileset.hpp"
+#include "TilePallete.hpp"
 #include "imgui.h"
+
 class GUI {
    public:
     GUI();
@@ -21,10 +21,10 @@ class GUI {
     void renderDockspace();
     void renderToolbar();
     void renderCanvas();
-    void renderTileset();
+    void renderTilePallete();
 
+    TilePallete tilePallete_;
     Canvas canvas_;
-    Tileset tileset_;
     Menubar menubar_;
 
     EditorTool currentTool_ = EditorTool::Brush;

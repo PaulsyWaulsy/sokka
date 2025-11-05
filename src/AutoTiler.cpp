@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "Logger.hpp"
+#include "Tileset.hpp"
 
 // Ignore the centre of the mask -> is the tile
 // string is xxx-xxx-xxx
@@ -33,7 +34,7 @@ Mask parseMaskString(const std::string& s) {
     return {tileMask, ignoreMask};
 }
 
-TileSetManager loadTilesJSON(const std::string& path) {
+AutoTileRuleMap loadTilesJSON(const std::string& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
         LOG_ERROR("TilesetLoader Failed to open JSON: ", path);
@@ -44,12 +45,12 @@ TileSetManager loadTilesJSON(const std::string& path) {
     file >> data;
 
     // Step 1: Load all tilesets into a map by ID
-    TileSetManager tilesetMap;
+    AutoTileRuleMap tilesetMap;
 
     for (auto& t : data["tilesets"]) {
-        Set set;
+        RuleSet set;
         set.id = t.value("id", "");
-        set.path = "tilesets/" + t.value("path", "");
+        set.path = t.value("path", "");
         set.copy = t.value("copy", "");  // new field for inheritance
         set.ignores = t.value("ignores", "");
 
@@ -63,19 +64,19 @@ TileSetManager loadTilesJSON(const std::string& path) {
                             rule.tiles.push_back({arr[0].get<int>(), arr[1].get<int>()});
                     }
                 }
-                set.rules.push_back(rule);
+                set.rules.emplace_back(std::move(rule));
             }
         }
 
-        tilesetMap.sets[set.id] = set;
+        tilesetMap.ruleSets.emplace(set.id, std::move(set));
     }
 
     // Step 2: Apply "copy" inheritance
-    for (auto& [id, set] : tilesetMap.sets) {
+    for (auto& [id, set] : tilesetMap.ruleSets) {
         if (!set.copy.empty()) {
-            auto baseIt = tilesetMap.sets.find(set.copy);
-            if (baseIt != tilesetMap.sets.end()) {
-                const Set& base = baseIt->second;
+            auto baseIt = tilesetMap.ruleSets.find(set.copy);
+            if (baseIt != tilesetMap.ruleSets.end()) {
+                const RuleSet& base = baseIt->second;
 
                 // Copy base properties if missing
                 if (set.ignores.empty()) set.ignores = base.ignores;
@@ -91,28 +92,53 @@ TileSetManager loadTilesJSON(const std::string& path) {
         }
     }
 
-    LOG_INFO("Loaded ", tilesetMap.sets.size(), " tilesets from ", path);
-
-    for (const auto& [id, set] : tilesetMap.sets) {
-        LOG_INFO("  Tileset ID: ", id);
-        LOG_INFO("    Path: ", set.path);
-        LOG_INFO("    Copy: ", set.copy.empty() ? "(none)" : set.copy);
-        LOG_INFO("    Ignores: ", set.ignores.empty() ? "(none)" : set.ignores);
-        LOG_INFO("    Rules: ", set.rules.size());
-
-        for (size_t i = 0; i < set.rules.size(); ++i) {
-            const auto& rule = set.rules[i];
-            LOG_INFO("      [", i, "] Mask: ", static_cast<int>(rule.mask.mask),
-                     ", Ignore: ", static_cast<int>(rule.mask.ignores), "| Tiles: ", rule.tiles.size());
-        }
-    }
-
+    LOG_INFO("Loaded ", tilesetMap.ruleSets.size(), " tilesets from ", path);
     return tilesetMap;
 }
 
-uint8_t AutoTileSet::getTileForMask(uint8_t mask) const {
+uint8_t AutoTileSet::getTileForMask(uint8_t mask, uint8_t ignores) const {
     for (const auto& rule : rules_) {
-        if (mask == rule.mask) return rule.tileIndex;
+        if ((mask ^ ignores) == rule.mask) {
+            return rule.tileIndex;
+        }
     }
     return -1;  // default
+}
+
+AutoTiler::AutoTiler(const std::string& path) {
+    if (!load(path)) {
+        LOG_ERROR("AutoTiler failed to load tilesets");
+    } else {
+        LOG_SUCCESS("AutoTiler Loaded tilesets");
+    }
+}
+
+bool AutoTiler::load(const std::string& path) {
+    ruleMap_ = loadTilesJSON(path);
+    bool success = true;
+
+    for (auto& [id, ruleSet] : ruleMap_.ruleSets) {
+        // Ignore loading the template
+        if (std::string(id) == "z") {
+            continue;
+        }
+
+        // real path
+        // TODO: make this find it within the system (absolute path)
+        std::string relativePath = "../assets/sprites/tilesets/" + ruleSet.path + ".png";
+
+        // Construct in-place inside the map
+        auto [it, inserted] = tilesets_.tilesets.emplace(id, Tileset{});
+        Tileset& tileset = it->second;  // reference to the one inside the map
+
+        if (tileset.load(relativePath)) {
+            LOG_SUCCESS("AutoTiler Loaded tileset: ", id, " = ", ruleSet.path);
+        } else {
+            LOG_ERROR("AutoTiler Failed to load tileset for rule set: ", id, " (", ruleSet.path, ")");
+            tilesets_.tilesets.erase(it);
+            success = false;
+        }
+    }
+
+    return success;
 }

@@ -1,11 +1,11 @@
 #include "AutoTiler.hpp"
-#include "Texture.hpp"
+#include "TilePallete.hpp"
 #include "Tileset.hpp"
 #include "imgui.h"
 
 class Canvas {
    public:
-    Canvas(Tileset& tileset, int mapWidth = 32, int mapHeight = 32);
+    Canvas(TilePallete& tilePallete, int mapWidth = 32, int mapHeight = 32);
     void render();
 
    private:
@@ -21,13 +21,11 @@ class Canvas {
     float zoom_ = 3.0f;
     const float tileSize_ = 8.0f;
 
-    Tileset& tileset_;
+    TilePallete& tilePallete_;
+    AutoTiler& autoTiler_;
+    Tileset* currentTileset_ = nullptr;
+
     int mapWidth_;
     int mapHeight_;
     std::vector<int> tiles_;  // -1 = empty, otherwise tile index
-
-    AutoTileSet autotileSet_;
-
-    // TEST:
-    TileSetManager tilesets_;
 };

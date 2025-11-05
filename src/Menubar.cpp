@@ -71,14 +71,4 @@ void Menubar::render() {
 
         ImGui::EndMainMenuBar();
     }
-
-    // For opening dialog
-    if (ImGuiFileDialog::Instance()->Display("ChooseTileset")) {
-        if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-            tileset_.load(filePath, 8);  // or use your chosen tile size
-            LOG_INFO("GUI Imported tileset: ", filePath);
-        }
-        ImGuiFileDialog::Instance()->Close();
-    }
 }
