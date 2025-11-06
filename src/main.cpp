@@ -1,9 +1,11 @@
-#include "EditorApp.hpp"
+#include "core/Application.hpp"
+#include "core/Base.hpp"
+#include "core/Logger.hpp"
 
-int main(int argc, char* argv[]) {
-    (void)argc;
-    (void)argv;
-    EditorApp app("Sokka Editor", 1280, 720);
-    app.run();
+int main() {
+    auto app = Sokka::makeUnique<Sokka::Application>();
+    app->run();
+
+    SOKKA_INFO("Shutting Down Editor");
     return 0;
 }

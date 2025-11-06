@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.17)
 project(sokka LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Default build type to Debug
@@ -40,7 +41,14 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR} ${SDL2_INCLUDE_DIRS})
 
 # Link SDL2 and extensions
-target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image SDL2_ttf SDL2_gfx GLEW::GLEW OpenGL::GL)
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        SDL2::SDL2
+        SDL2_image::SDL2_image
+        SDL2_ttf::SDL2_ttf
+        GLEW::GLEW
+        OpenGL::GL
+)
 
 # ImGui integration
 set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/external/imgui)

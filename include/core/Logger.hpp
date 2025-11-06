@@ -20,7 +20,7 @@ const std::string LOG_DIRECTORY_PATH = "logs";
 enum class LogLevel { DEBUG, INFO, SUCCESS, WARN, ERROR };
 
 class Logger {
-   public:
+public:
     // Initialize optional file output
     static void init(const std::string& filename = "") {
         // Always ensure logs directory exists
@@ -72,7 +72,7 @@ class Logger {
         }
     }
 
-   private:
+private:
     static std::string timestamp() {
         auto t = std::time(nullptr);
         std::tm tm;
@@ -122,8 +122,8 @@ class Logger {
 };
 
 // Macros
-#define LOG_DEBUG(...) Logger::log(LogLevel::DEBUG, __VA_ARGS__)
-#define LOG_INFO(...) Logger::log(LogLevel::INFO, __VA_ARGS__)
-#define LOG_SUCCESS(...) Logger::log(LogLevel::SUCCESS, __VA_ARGS__)
-#define LOG_WARN(...) Logger::log(LogLevel::WARN, __VA_ARGS__)
-#define LOG_ERROR(...) Logger::log(LogLevel::ERROR, __VA_ARGS__)
+#define SOKKA_DEBUG(...) Logger::log(LogLevel::DEBUG, __VA_ARGS__)
+#define SOKKA_INFO(...) Logger::log(LogLevel::INFO, __VA_ARGS__)
+#define SOKKA_SUCCESS(...) Logger::log(LogLevel::SUCCESS, __VA_ARGS__)
+#define SOKKA_WARN(...) Logger::log(LogLevel::WARN, __VA_ARGS__)
+#define SOKKA_ERROR(...) Logger::log(LogLevel::ERROR, __VA_ARGS__)
