@@ -1,11 +1,9 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <SDL_video.h>
-
 #include <string>
 
-#include "core/Base.hpp"
+#include "SDL_video.h"
+#include "sokka/core/Base.hpp"
 
 namespace Sokka {
 

@@ -1,13 +1,12 @@
-#include "ui/GUI.hpp"
+#include "sokka/ui/GUI.hpp"
 
-#include <SDL_opengl.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <backends/imgui_impl_sdl2.h>
-#include <imgui.h>
-
-#include "core/Application.hpp"
-#include "core/Base.hpp"
-#include "core/Logger.hpp"
+#include "SDL_opengl.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_sdl2.h"
+#include "imgui.h"
+#include "sokka/core/Application.hpp"
+#include "sokka/core/Base.hpp"
+#include "sokka/core/Logger.hpp"
 
 namespace Sokka {
 

@@ -1,8 +1,9 @@
-#include "core/Application.hpp"
+#include "sokka/core/Application.hpp"
 
-#include "core/Logger.hpp"
-#include "core/Window.hpp"
+#include "SDL2/SDL.h"
 #include "imgui_impl_sdl2.h"
+#include "sokka/core/Logger.hpp"
+#include "sokka/core/Window.hpp"
 
 namespace Sokka {
 

@@ -1,12 +1,8 @@
-#include "core/Window.hpp"
+#include "sokka/core/Window.hpp"
 
-#include <GL/glew.h>
-#include <SDL_events.h>
-#include <SDL_opengl.h>
-#include <SDL_scancode.h>
-#include <SDL_video.h>
-
-#include "core/Logger.hpp"
+#include "GL/glew.h"
+#include "SDL_video.h"
+#include "sokka/core/Logger.hpp"
 
 namespace Sokka {
 

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <SDL_video.h>
-
-#include "core/Base.hpp"
+#include "SDL_video.h"
+#include "sokka/core/Base.hpp"
 
 namespace Sokka {
 

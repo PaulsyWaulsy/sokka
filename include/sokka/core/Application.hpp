@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/Base.hpp"
-#include "core/Window.hpp"
-#include "ui/GUI.hpp"
+#include "sokka/core/Base.hpp"
+#include "sokka/core/Window.hpp"
+#include "sokka/ui/GUI.hpp"
 
 namespace Sokka {
 class Application {
