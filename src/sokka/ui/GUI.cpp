@@ -7,6 +7,7 @@
 #include "sokka/core/Application.hpp"
 #include "sokka/core/Base.hpp"
 #include "sokka/core/Logger.hpp"
+#include "sokka/ui/Menubar.hpp"
 
 namespace Sokka {
 
@@ -21,6 +22,7 @@ GUI::~GUI() {
     // close GUI
     close();
 }
+
 bool GUI::init() {
     Application& app = Application::get();
     window_ = app.getWindow().getNativeWindow();
@@ -39,6 +41,9 @@ bool GUI::init() {
         SOKKA_ERROR("Failed to initialise ImGui");
         return false;
     }
+
+    menubar_ = Menubar::create();
+
     return true;
 }
 
@@ -55,6 +60,7 @@ void GUI::render() {
     // Render logic here
     renderDockspace();
     renderDemo();
+    menubar_->render();
 
     imGuiEnd();
 }

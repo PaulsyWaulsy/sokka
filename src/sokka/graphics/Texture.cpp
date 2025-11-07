@@ -78,7 +78,12 @@ bool Texture2D::init(const TextureConfig& config) {
     return true;
 }
 
-void Texture2D::close() {}
+void Texture2D::close() {
+    if (data_.id != 0) {
+        SOKKA_INFO("Texture deleted, ID = ", data_.id);
+        glDeleteTextures(1, &data_.id);
+    }
+}
 
 void Texture2D::bind() const { glBindTexture(GL_TEXTURE_2D, data_.id); }
 
