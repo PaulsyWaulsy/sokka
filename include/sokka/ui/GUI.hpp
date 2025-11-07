@@ -12,6 +12,7 @@ public:
     ~GUI();
     bool init();
     void close();
+    void update(float deltaTime);
     void render();
 
     static Unique<GUI> create();

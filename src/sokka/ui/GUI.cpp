@@ -54,6 +54,11 @@ void GUI::close() {
     ImGui::DestroyContext();
 }
 
+void GUI::update(float deltaTime) {
+    // do something
+    (void)deltaTime;
+}
+
 void GUI::render() {
     imGuiBegin();
 

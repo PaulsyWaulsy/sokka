@@ -22,7 +22,10 @@ void Application::run() {
     running_ = true;
     start();
     while (running_) {
+        time_.update();
+
         processEvents();
+        update(time_.getDeltaTime());
         render();
     }
 }
@@ -55,6 +58,11 @@ bool Application::init() {
 }
 
 void Application::start() {}
+
+void Application::update(float deltaTime) {
+    // Update logic
+    gui_->update(deltaTime);
+}
 
 void Application::close() {
     // stop running
