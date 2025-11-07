@@ -2,6 +2,7 @@
 
 #include "SDL_video.h"
 #include "sokka/core/Base.hpp"
+#include "sokka/ui/Canvas.hpp"
 #include "sokka/ui/Menubar.hpp"
 
 namespace Sokka {
@@ -31,6 +32,7 @@ private:
     SDL_GLContext glContext_;
 
     Unique<Menubar> menubar_;
+    Unique<Canvas> canvas_;
 
     static constexpr const char* CUSTOM_FONT = "assets/fonts/JetBrainsMonoNerdFontMono-Regular.ttf";
 };

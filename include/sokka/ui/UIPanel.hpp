@@ -8,7 +8,7 @@ public:
     UIPanel(const std::string& name = "Panel") : name_(name) {}
     virtual ~UIPanel() = default;
 
-    virtual void init() {}
+    virtual bool init() { return true; }
     virtual void render() = 0;
 
     const std::string& getName() const { return name_; }

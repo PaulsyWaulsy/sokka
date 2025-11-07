@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "sokka/core/Logger.hpp"
 #include "sokka/graphics/Vector2.hpp"
 namespace Sokka {
 
@@ -13,7 +14,7 @@ public:
 
     void update(float deltaTime);
 
-    void setVeiwport(int width, int height) {
+    void setViewport(int width, int height) {
         viewport_.width = width;
         viewport_.height = height;
     }
@@ -30,8 +31,14 @@ public:
 
 private:
     void updateView();
-    void move(const Vector2& delta) { position_ += delta; }
-    void zoom(float factor) { zoom_ *= factor; }
+    void move(const Vector2& delta) {
+        SOKKA_INFO("Camera Move!");
+        position_ += delta;
+    }
+    void zoom(float factor) {
+        SOKKA_INFO("Camera zoom!");
+        zoom_ *= factor;
+    }
 
     static constexpr unsigned int DEFAULT_VIEWPORT_WIDTH = 1280;
     static constexpr unsigned int DEFAULT_VIEWPORT_HEIGHT = 720;

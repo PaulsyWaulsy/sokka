@@ -7,6 +7,7 @@
 #include "sokka/core/Application.hpp"
 #include "sokka/core/Base.hpp"
 #include "sokka/core/Logger.hpp"
+#include "sokka/ui/Canvas.hpp"
 #include "sokka/ui/Menubar.hpp"
 
 namespace Sokka {
@@ -43,6 +44,7 @@ bool GUI::init() {
     }
 
     menubar_ = Menubar::create();
+    canvas_ = Canvas::create();
 
     return true;
 }
@@ -56,7 +58,7 @@ void GUI::close() {
 
 void GUI::update(float deltaTime) {
     // do something
-    (void)deltaTime;
+    canvas_->update(deltaTime);
 }
 
 void GUI::render() {
@@ -66,6 +68,7 @@ void GUI::render() {
     renderDockspace();
     renderDemo();
     menubar_->render();
+    canvas_->render();
 
     imGuiEnd();
 }

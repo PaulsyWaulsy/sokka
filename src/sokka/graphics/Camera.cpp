@@ -21,6 +21,8 @@ void Camera::update(float deltaTime) {
         // get mouse movement delta
 
         float scroll = Input::getMouseWheelY();
+        // SOKKA_INFO("Scrolled: ", scroll);
+
         Vector2 delta = Input::getMouseDelta() * deltaTime;
         if (Input::isMouseButtonPressed(SDL_BUTTON_LEFT)) {
             move(delta);

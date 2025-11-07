@@ -2,6 +2,8 @@
 
 #include <SDL2/SDL.h>
 
+#include "sokka/core/Logger.hpp"
+
 namespace Sokka {
 
 void Input::processEvent(const SDL_Event* event) {
@@ -22,9 +24,6 @@ void Input::update() {
     // Compute delta (difference between frames)
     mouseDelta_ = mousePosition_ - lastMousePosition_;
     lastMousePosition_ = mousePosition_;
-
-    // Reset transient values
-    mouseWheelY_ = 0;
 }
 
 bool Input::isKeyPressed(SDL_Scancode key) {
@@ -47,7 +46,7 @@ float Input::getMouseY() { return mousePosition_.y; }
 
 float Input::getMouseWheelY() {
     // reset to zero after use
-    float y = mouseWheelY_;
+    int y = mouseWheelY_;
     mouseWheelY_ = 0;
     return y;
 }
