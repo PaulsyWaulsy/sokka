@@ -2,6 +2,7 @@
 
 #include "SDL2/SDL.h"
 #include "imgui_impl_sdl2.h"
+#include "sokka/core/Input.hpp"
 #include "sokka/core/Logger.hpp"
 #include "sokka/core/Window.hpp"
 
@@ -27,6 +28,10 @@ void Application::run() {
         processEvents();
         update(time_.getDeltaTime());
         render();
+
+        if (!window_->isVSync()) {
+            time_.limitFPS();
+        }
     }
 }
 
@@ -75,6 +80,8 @@ void Application::processEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         ImGui_ImplSDL2_ProcessEvent(&event);
+        Input::processEvent(&event);
+
         if (event.type == SDL_QUIT) running_ = false;
 
         // NOTE: close on escape key pressed
@@ -82,6 +89,9 @@ void Application::processEvents() {
             if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) running_ = false;
         }
     }
+
+    // update inputs
+    Input::update();
 }
 
 }  // namespace Sokka

@@ -1,14 +1,17 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "sokka/graphics/Vector2.hpp"
 namespace Sokka {
 
 class Camera {
 public:
-    Camera() = default;
+    Camera(int width = DEFAULT_VIEWPORT_WIDTH, int height = DEFAULT_VIEWPORT_HEIGHT);
     ~Camera() = default;
 
-    void update();
+    void update(float deltaTime);
 
     void setVeiwport(int width, int height) {
         viewport_.width = width;
@@ -21,23 +24,29 @@ public:
     Vector2 getPosition() const { return position_; }
     void setPosition(const Vector2& position) { position_ = position; }
 
+    const glm::mat4& getView() const { return viewMatrix_; }
+    const glm::mat4& getProjection() const { return projectionMatrix_; }
+    const glm::mat4& getViewProjection() const { return viewProjectionMatrix_; }
+
+private:
+    void updateView();
     void move(const Vector2& delta) { position_ += delta; }
     void zoom(float factor) { zoom_ *= factor; }
 
-    Vector2 worldToScreen(const Vector2& world) const;
-    Vector2 screenToWorld(const Vector2& screen) const;
-
-private:
     static constexpr unsigned int DEFAULT_VIEWPORT_WIDTH = 1280;
     static constexpr unsigned int DEFAULT_VIEWPORT_HEIGHT = 720;
 
     struct Viewport {
-        unsigned int width = DEFAULT_VIEWPORT_WIDTH;
-        unsigned int height = DEFAULT_VIEWPORT_HEIGHT;
+        int width = DEFAULT_VIEWPORT_WIDTH;
+        int height = DEFAULT_VIEWPORT_HEIGHT;
     };
 
     float zoom_ = 10.0f;
     Vector2 position_ = {0, 0};
     Viewport viewport_;
+
+    glm::mat4 viewMatrix_{1.0f};
+    glm::mat4 projectionMatrix_{1.0f};
+    glm::mat4 viewProjectionMatrix_{1.0f};
 };
 }  // namespace Sokka
