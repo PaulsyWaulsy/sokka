@@ -50,6 +50,15 @@ target_link_libraries(${PROJECT_NAME}
         OpenGL::GL
 )
 
+
+# Copy assets into build directory after build 
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
+)
+
 # ImGui integration
 set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/external/imgui)
 

@@ -29,7 +29,6 @@ private:
     SDL_Window* window_;
     SDL_GLContext glContext_;
 
-    static constexpr const char* CUSTOM_FONT =
-        "../assets/fonts/JetBrainsMonoNerdFontMono-Regular.ttf";
+    static constexpr const char* CUSTOM_FONT = "assets/fonts/JetBrainsMonoNerdFontMono-Regular.ttf";
 };
 }  // namespace Sokka
