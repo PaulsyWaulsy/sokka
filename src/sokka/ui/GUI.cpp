@@ -118,7 +118,7 @@ bool GUI::initImGui() {
         SOKKA_ERROR("Failed to Initialise OpendGL for SDL");
         return false;
     }
-    if (!ImGui_ImplOpenGL3_Init("#version 130")) {
+    if (!ImGui_ImplOpenGL3_Init("#version 330")) {
         SOKKA_ERROR("Failed to Initialise OpendGL for ImGui");
     }
     return true;
