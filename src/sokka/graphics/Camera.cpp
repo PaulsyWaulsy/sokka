@@ -3,6 +3,8 @@
 #include <SDL_mouse.h>
 #include <SDL_scancode.h>
 
+#include <algorithm>
+
 #include "sokka/core/Input.hpp"
 #include "sokka/core/Logger.hpp"
 #include "sokka/graphics/Vector2.hpp"
@@ -12,6 +14,7 @@ Camera::Camera(int width, int height) : zoom_(1.0f), position_({0, 0}), viewport
     if (width < 0) SOKKA_WARN("Camera width should be positive: ", width);
     if (height < 0) SOKKA_WARN("Camera height should be positive: ", height);
 
+    SOKKA_SUCCESS("Created editor camera");
     updateView();
 }
 
@@ -44,4 +47,21 @@ void Camera::updateView() {
     viewProjectionMatrix_ = projectionMatrix_ * viewMatrix_;
 }
 
+void Camera::move(const Vector2& delta) {
+    float speed = CAMERA_MOVE_SPEED / zoom_;
+
+    position_.x -= delta.x * speed;
+    position_.y += delta.y * speed;
+}
+
+void Camera::zoom(float scroll) {
+    if (scroll > 0) {
+        zoom_ /= CAMERA_ZOOM_FACTOR;
+    } else if (scroll < 0) {
+        zoom_ *= CAMERA_ZOOM_FACTOR;
+    }
+    zoom_ = std::clamp(zoom_, MIN_ZOOM, MAX_ZOOM);
+}
+
 }  // namespace Sokka
+//

@@ -2,6 +2,7 @@
 
 #include <GL/glew.h>
 
+#include "imgui.h"
 #include "sokka/core/Base.hpp"
 #include "sokka/graphics/Camera.hpp"
 #include "sokka/graphics/Shader.hpp"
@@ -21,9 +22,13 @@ public:
 
 private:
     bool isMouseOver() const;
+    void resizeBuffer(int width, int height);
+    ImVec2 getPanelSize();
 
     // for hover logic
     bool isHovered_ = false;
+    ImVec2 size_ = {1280, 720};
+    ImVec2 lastSize_ = {1280, 720};
 
     GLuint fbo_ = 0;
     GLuint colorTexture_ = 0;

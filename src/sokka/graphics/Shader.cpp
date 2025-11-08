@@ -10,14 +10,19 @@
 
 namespace Sokka {
 
-Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
-    if (!init(vertexPath, fragmentPath)) {
+Shader::Shader(const std::string& name, const std::string& vertexPath,
+               const std::string& fragmentPath) {
+    if (!init(name, vertexPath, fragmentPath)) {
         SOKKA_ERROR("Failed to initialise Shader");
     }
+    SOKKA_SUCCESS("Initialised Shader");
 }
 
 // TODO: refactor (Got reference code from LearnOpenGL)
-bool Shader::init(const std::string& vertexPath, const std::string& fragmentPath) {
+bool Shader::init(const std::string& name, const std::string& vertexPath,
+                  const std::string& fragmentPath) {
+    name_ = name;
+
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;
     std::string fragmentCode;
@@ -123,11 +128,17 @@ void Shader::setFloat4(const std::string& name, const glm::vec4& value) const {
 }
 
 void Shader::setMat4(const std::string& name, const glm::mat4& value) const {
-    glUniformMatrix4fv(glGetUniformLocation(id_, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+    GLint location = glGetUniformLocation(id_, name.c_str());
+    if (location == -1) {
+        SOKKA_WARN("Uniform: ", name, "not found or inactive");
+        return;
+    }
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-Shared<Shader> Shader::create(const std::string& vertexPath, const std::string& fragmentPath) {
-    return makeShared<Shader>(vertexPath, fragmentPath);
+Shared<Shader> Shader::create(const std::string& name, const std::string& vertexPath,
+                              const std::string& fragmentPath) {
+    return makeShared<Shader>(name, vertexPath, fragmentPath);
 }
 
 }  // namespace Sokka

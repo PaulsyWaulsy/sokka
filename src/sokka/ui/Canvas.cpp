@@ -6,6 +6,7 @@
 #include "sokka/core/Base.hpp"
 #include "sokka/core/Logger.hpp"
 #include "sokka/graphics/Camera.hpp"
+#include "sokka/graphics/Vector2.hpp"
 
 namespace Sokka {
 
@@ -13,12 +14,13 @@ Canvas::Canvas() : UIPanel("Scene"), camera_() {
     if (!init()) {
         SOKKA_ERROR("Failed to initialise Canvas");
     }
+    SOKKA_SUCCESS("Initialised Canvas");
 }
 
 bool Canvas::init() {
     // You might initialize your framebuffer here if you render to texture
     camera_.setViewport(1280, 720);
-    shader_ = Shader::create(VERTEX_SHADER, FRAGMENT_SHADER);
+    shader_ = Shader::create("Canvas", VERTEX_SHADER, FRAGMENT_SHADER);
 
     // --- Create framebuffer ---
     glGenFramebuffers(1, &fbo_);
@@ -70,8 +72,7 @@ void Canvas::render() {
     // render scene objects
     static unsigned int vao = 0, vbo = 0;
     if (vao == 0) {
-        float vertices[] = {// positions (x, y)
-                            0.0f, 100.0f, -100.0f, -100.0f, 100.0f, -100.0f};
+        float vertices[] = {-100.0f, -100.0f, 100.0f, -100.0f, 0.0f, 100.0f};
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);
         glBindVertexArray(vao);
@@ -92,6 +93,8 @@ void Canvas::render() {
     ImGui::Begin("Scene");
     isHovered_ = ImGui::IsWindowHovered();
     ImVec2 size = ImGui::GetContentRegionAvail();
+    // SOKKA_INFO("Size: ", size.x, ", ", size.y);
+
     ImGui::Image((ImTextureID)(uintptr_t)colorTexture_, size, ImVec2(0, 1), ImVec2(1, 0));
 
     ImGui::End();

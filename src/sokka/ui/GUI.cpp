@@ -17,6 +17,8 @@ GUI::GUI() {
     if (!init()) {
         SOKKA_ERROR("Failed to initialise GUI");
     }
+
+    SOKKA_SUCCESS("Initialised GUI");
 }
 
 GUI::~GUI() {
