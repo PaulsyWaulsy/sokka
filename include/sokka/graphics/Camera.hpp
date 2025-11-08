@@ -7,6 +7,14 @@
 #include "sokka/graphics/Vector2.hpp"
 namespace Sokka {
 
+inline static constexpr unsigned int DEFAULT_VIEWPORT_WIDTH = 1280;
+inline static constexpr unsigned int DEFAULT_VIEWPORT_HEIGHT = 720;
+
+struct Viewport {
+    int width = DEFAULT_VIEWPORT_WIDTH;
+    int height = DEFAULT_VIEWPORT_HEIGHT;
+};
+
 class Camera {
 public:
     Camera(int width = DEFAULT_VIEWPORT_WIDTH, int height = DEFAULT_VIEWPORT_HEIGHT);
@@ -37,17 +45,10 @@ private:
     void move(const Vector2& delta);
     void zoom(float scroll);
 
-    static constexpr unsigned int DEFAULT_VIEWPORT_WIDTH = 1280;
-    static constexpr unsigned int DEFAULT_VIEWPORT_HEIGHT = 720;
     static constexpr float CAMERA_MOVE_SPEED = 1000.0f;
     static constexpr float CAMERA_ZOOM_FACTOR = 1.1f;
     static constexpr float MIN_ZOOM = 0.1f;
     static constexpr float MAX_ZOOM = 50.0f;
-
-    struct Viewport {
-        int width = DEFAULT_VIEWPORT_WIDTH;
-        int height = DEFAULT_VIEWPORT_HEIGHT;
-    };
 
     float zoom_ = 10.0f;
     Vector2 position_ = {0, 0};

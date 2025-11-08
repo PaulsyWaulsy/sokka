@@ -5,6 +5,7 @@
 #include "sokka/core/Input.hpp"
 #include "sokka/core/Logger.hpp"
 #include "sokka/core/Window.hpp"
+#include "sokka/graphics/Renderer.hpp"
 
 namespace Sokka {
 
@@ -59,6 +60,7 @@ bool Application::init() {
     }
 
     Logger::init("logs/editor.log");
+    Renderer::init();
     return true;
 }
 
@@ -71,6 +73,7 @@ void Application::update(float deltaTime) {
 
 void Application::close() {
     // stop running
+    Renderer::close();
     SDL_Quit();
 }
 

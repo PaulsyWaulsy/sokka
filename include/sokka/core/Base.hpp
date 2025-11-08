@@ -16,6 +16,9 @@ struct Color {
     static constexpr Color Blue() { return {0.0f, 0.0f, 1.0f, 1.0f}; }
 };
 
+// Constants
+static constexpr int TILE_SIZE = 8;
+
 template <typename T>
 using Unique = std::unique_ptr<T>;
 template <typename T, typename... Args>

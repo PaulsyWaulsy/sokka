@@ -2,19 +2,17 @@
 
 #include <glm/glm.hpp>
 #include <string>
-#include <unordered_map>
 
 #include "sokka/core/Base.hpp"
 namespace Sokka {
 
 class Shader {
 public:
-    Shader(const std::string& name, const std::string& vertexPath, const std::string& fragmentPath);
+    Shader(const std::string& vertexPath, const std::string& fragmentPath);
 
     void bind();
     void unbind();
-    bool init(const std::string& name, const std::string& vertexPath,
-              const std::string& fragmentPath);
+    bool init(const std::string& vertexPath, const std::string& fragmentPath);
 
     void setBool(const std::string& name, bool value) const;
     void setInt(const std::string& name, int value) const;
@@ -24,29 +22,27 @@ public:
     void setFloat4(const std::string& name, const glm::vec4& value) const;
     void setMat4(const std::string& name, const glm::mat4& value) const;
 
-    const std::string& getName() const { return name_; }
+    int getId() const { return id_; }
 
-    static Shared<Shader> create(const std::string& name, const std::string& vertexPath,
-                                 const std::string& fragmentPath);
+    static Shared<Shader> create(const std::string& vertexPath, const std::string& fragmentPath);
 
 private:
     unsigned int id_;
-    std::string name_;
 };
 
-class ShaderLibrary {
-public:
-    void add(const Shared<Shader>& shader);
-    void add(const std::string& name, const Shared<Shader>& shader);
-
-    bool contains(const std::string& name) const;
-
-    Shared<Shader> get(const std::string& name);
-    Shared<Shader> load(const std::string& name, const std::string& vertexPath,
-                        const std::string& fragmentPath);
-
-private:
-    std::unordered_map<std::string, Shared<Shader>> shaders_;
-};
+// class ShaderLibrary {
+// public:
+//     void add(const Shared<Shader>& shader);
+//     void add(const std::string& name, const Shared<Shader>& shader);
+//
+//     bool contains(const std::string& name) const;
+//
+//     Shared<Shader> get(const std::string& name);
+//     Shared<Shader> load(const std::string& name, const std::string& vertexPath,
+//                         const std::string& fragmentPath);
+//
+// private:
+//     std::unordered_map<std::string, Shared<Shader>> shaders_;
+// };
 
 }  // namespace Sokka

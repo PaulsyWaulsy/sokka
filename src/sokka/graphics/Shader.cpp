@@ -10,19 +10,15 @@
 
 namespace Sokka {
 
-Shader::Shader(const std::string& name, const std::string& vertexPath,
-               const std::string& fragmentPath) {
-    if (!init(name, vertexPath, fragmentPath)) {
+Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath) {
+    if (!init(vertexPath, fragmentPath)) {
         SOKKA_ERROR("Failed to initialise Shader");
     }
     SOKKA_SUCCESS("Initialised Shader");
 }
 
 // TODO: refactor (Got reference code from LearnOpenGL)
-bool Shader::init(const std::string& name, const std::string& vertexPath,
-                  const std::string& fragmentPath) {
-    name_ = name;
-
+bool Shader::init(const std::string& vertexPath, const std::string& fragmentPath) {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;
     std::string fragmentCode;
@@ -136,9 +132,8 @@ void Shader::setMat4(const std::string& name, const glm::mat4& value) const {
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-Shared<Shader> Shader::create(const std::string& name, const std::string& vertexPath,
-                              const std::string& fragmentPath) {
-    return makeShared<Shader>(name, vertexPath, fragmentPath);
+Shared<Shader> Shader::create(const std::string& vertexPath, const std::string& fragmentPath) {
+    return makeShared<Shader>(vertexPath, fragmentPath);
 }
 
 }  // namespace Sokka

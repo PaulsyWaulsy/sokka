@@ -6,6 +6,7 @@
 #include "sokka/core/Base.hpp"
 #include "sokka/graphics/Camera.hpp"
 #include "sokka/graphics/Shader.hpp"
+#include "sokka/graphics/Vector2.hpp"
 #include "sokka/ui/UIPanel.hpp"
 
 namespace Sokka {
@@ -21,19 +22,23 @@ public:
     static Unique<Canvas> create();
 
 private:
+    void renderGUI();
     bool isMouseOver() const;
     void resizeBuffer(int width, int height);
     ImVec2 getPanelSize();
+    void resizeFrameBuffer(int width, int height);
 
     // for hover logic
     bool isHovered_ = false;
-    ImVec2 size_ = {1280, 720};
-    ImVec2 lastSize_ = {1280, 720};
+    Vector2 size_ = {DEFAULT_VIEWPORT_WIDTH, DEFAULT_VIEWPORT_HEIGHT};
+    Vector2 mouseWorld_ = {0, 0};
 
+    // TODO: refactor into frameBuffer class
     GLuint fbo_ = 0;
     GLuint colorTexture_ = 0;
     GLuint rbo_ = 0;  // depth-stencil
 
+    Viewport viewport_;
     Camera camera_;
     Shared<Shader> shader_;
 
