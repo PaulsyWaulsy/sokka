@@ -34,7 +34,7 @@ The project focuses on simplicity, fast iteration, and a clean developer workflo
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/sokka.git
+git clone https://github.com/PaulsyWaulsy/sokka.git
 cd sokka
 ```
 
