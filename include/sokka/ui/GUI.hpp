@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SDL_events.h>
+
 #include "SDL_video.h"
 #include "sokka/core/Base.hpp"
 #include "sokka/ui/Canvas.hpp"
@@ -13,6 +15,8 @@ public:
     ~GUI();
     bool init();
     void close();
+
+    void processEvent(const SDL_Event* event);
     void update(float deltaTime);
     void render();
 

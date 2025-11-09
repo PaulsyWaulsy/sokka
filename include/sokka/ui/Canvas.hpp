@@ -1,10 +1,13 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <SDL_events.h>
 
 #include "imgui.h"
 #include "sokka/core/Base.hpp"
+#include "sokka/editor/RoomTool.hpp"
 #include "sokka/graphics/Camera.hpp"
+#include "sokka/graphics/FrameBuffer.hpp"
 #include "sokka/graphics/Shader.hpp"
 #include "sokka/graphics/Vector2.hpp"
 #include "sokka/ui/UIPanel.hpp"
@@ -17,30 +20,39 @@ public:
 
     bool init() override;
     void render() override;
+
+    // TODO: make an event callback system
+    void processEvent(const SDL_Event* event);
     void update(float deltaTime);
 
     static Unique<Canvas> create();
 
 private:
-    void renderGUI();
     bool isMouseOver() const;
     void resizeBuffer(int width, int height);
-    ImVec2 getPanelSize();
     void resizeFrameBuffer(int width, int height);
+    bool initFrameBuffer();
 
+    void renderGUI();
+    void renderStart();
+    void renderEnd();
+
+    bool initTools();
+
+private:
     // for hover logic
     bool isHovered_ = false;
-    Vector2 size_ = {DEFAULT_VIEWPORT_WIDTH, DEFAULT_VIEWPORT_HEIGHT};
+    ImVec2 size_ = {DEFAULT_VIEWPORT_WIDTH, DEFAULT_VIEWPORT_HEIGHT};
     Vector2 mouseWorld_ = {0, 0};
 
-    // TODO: refactor into frameBuffer class
-    GLuint fbo_ = 0;
-    GLuint colorTexture_ = 0;
-    GLuint rbo_ = 0;  // depth-stencil
+    Shared<FrameBuffer> frameBuffer_;
 
     Viewport viewport_;
     Camera camera_;
     Shared<Shader> shader_;
+
+    // TEST:
+    Unique<RoomTool> roomTool_;
 
     static constexpr const char* VERTEX_SHADER = "assets/shaders/basic.vert";
     static constexpr const char* FRAGMENT_SHADER = "assets/shaders/basic.frag";

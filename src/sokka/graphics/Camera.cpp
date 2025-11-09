@@ -20,18 +20,16 @@ Camera::Camera(int width, int height) : zoom_(1.0f), position_({0, 0}), viewport
 
 void Camera::update(float deltaTime) {
     (void)deltaTime;
-    if (Input::isKeyPressed(SDL_SCANCODE_LCTRL)) {
-        // get mouse movement delta
+    // get mouse movement delta
 
-        float scroll = Input::getMouseWheelY();
-        // SOKKA_INFO("Scrolled: ", scroll);
+    float scroll = Input::getMouseWheelY();
+    // SOKKA_INFO("Scrolled: ", scroll);
 
-        Vector2 delta = Input::getMouseDelta() * deltaTime;
-        if (Input::isMouseButtonPressed(SDL_BUTTON_LEFT)) {
-            move(delta);
-        } else if (scroll != 0) {
-            zoom(scroll);
-        }
+    Vector2 delta = Input::getMouseDelta() * deltaTime;
+    if (Input::isMouseButtonPressed(SDL_BUTTON_LEFT)) {
+        move(delta);
+    } else if (scroll != 0) {
+        zoom(scroll);
     }
 
     updateView();

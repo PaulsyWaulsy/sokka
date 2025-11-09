@@ -63,6 +63,11 @@ void GUI::update(float deltaTime) {
     canvas_->update(deltaTime);
 }
 
+void GUI::processEvent(const SDL_Event* event) {
+    // only canvas requires events
+    canvas_->processEvent(event);
+}
+
 void GUI::render() {
     imGuiBegin();
 

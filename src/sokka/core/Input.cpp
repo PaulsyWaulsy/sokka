@@ -2,10 +2,9 @@
 
 #include <SDL2/SDL.h>
 
-#include "sokka/core/Logger.hpp"
-
 namespace Sokka {
 
+// FIX: no point to do this if canvas is given events directly
 void Input::processEvent(const SDL_Event* event) {
     // Only detect mouse movements, not button events
     switch (event->type) {

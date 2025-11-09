@@ -84,6 +84,7 @@ void Application::processEvents() {
     while (SDL_PollEvent(&event)) {
         ImGui_ImplSDL2_ProcessEvent(&event);
         Input::processEvent(&event);
+        gui_->processEvent(&event);
 
         if (event.type == SDL_QUIT) running_ = false;
 
